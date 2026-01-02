@@ -236,7 +236,7 @@ const adminAuth = (req, res, next) => {
 ### Default Admin User:
 
 ```
-Email: admin@codeandcash.com
+Email: admin@codexa.com
 Password: admin123456
 Role: admin
 ```
@@ -247,7 +247,7 @@ Role: admin
 // Admin user exists in database with:
 {
   _id: "686bc227d09a313c39ba9d67",
-  email: "admin@codeandcash.com",
+  email: "admin@codexa.com",
   name: "System Administrator",
   role: "admin",
   createdAt: "2025-07-07T12:48:39.933Z"
@@ -276,7 +276,7 @@ curl -X POST http://localhost:5001/api/auth/login \
     "user": {
       "id": "686bc227d09a313c39ba9d67",
       "name": "System Administrator",
-      "email": "admin@codeandcash.com"
+      "email": "admin@codexa.com"
     }
   }
 }
