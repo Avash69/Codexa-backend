@@ -7,8 +7,8 @@
 
 import fetch from "node-fetch";
 
-const API_BASE_URL = "http://localhost:5001/api";
-const BASE_URL = "http://localhost:5001";
+const API_BASE_URL = "http://localhost:5002/api";
+const BASE_URL = "http://localhost:5002";
 
 // Test configurations
 const testConfig = {
