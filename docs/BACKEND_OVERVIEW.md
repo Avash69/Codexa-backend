@@ -1,4 +1,4 @@
-# Codexa Backend - Complete System Overview
+# Code and Cash Backend - Complete System Overview
 
 ## 🏗️ System Architecture
 
