@@ -510,7 +510,7 @@ Create a new file `adminAPI.js` in your frontend project:
 
 ```javascript
 // adminAPI.js
-const API_BASE_URL = "http://localhost:5001/api";
+const API_BASE_URL = "http://localhost:5002/api";
 
 class AdminAPI {
   constructor() {
