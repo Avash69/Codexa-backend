@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import { logger } from "../src/utils/logger.js";
 
 // Base URL for API
-const BASE_URL = "http://localhost:5001/api";
+const BASE_URL = "http://localhost:5002/api";
 
 /**
  * Make HTTP request
