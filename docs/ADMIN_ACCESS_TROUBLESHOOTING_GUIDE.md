@@ -62,7 +62,7 @@ export const login = catchAsync(async (req, res, next) => {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "data": {
     "user": {
-      "id": "686bc227d09a313c39ba9d67",
+      "id": "6957ef5e9328d2e4e4c1ef84",
       "name": "System Administrator",
       "email": "admin@codeandcash.com",
       "role": "admin"
@@ -236,7 +236,7 @@ const adminAuth = (req, res, next) => {
 ### Default Admin User:
 
 ```
-Email: admin@codexa.com
+Email: admin@codeandcash.com
 Password: admin123456
 Role: admin
 ```
@@ -246,11 +246,11 @@ Role: admin
 ```javascript
 // Admin user exists in database with:
 {
-  _id: "686bc227d09a313c39ba9d67",
-  email: "admin@codexa.com",
+  _id: "6957ef5e9328d2e4e4c1ef84",    
+  email: "admin@codeandcash.com",
   name: "System Administrator",
   role: "admin",
-  createdAt: "2025-07-07T12:48:39.933Z"
+  createdAt: "2026-01-02T16:16:30.824+00:00"
 }
 ```
 
@@ -261,7 +261,7 @@ Role: admin
 ### Login Test:
 
 ```bash
-curl -X POST http://localhost:5001/api/auth/login \
+curl -X POST http://localhost:5002/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@codeandcash.com", "password": "admin123456"}'
 ```
@@ -271,12 +271,12 @@ curl -X POST http://localhost:5001/api/auth/login \
 ```json
 {
   "status": "success",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODZiYzIyN2QwOWEzMTNjMzliYTlkNjciLCJlbWFpbCI6ImFkbWluQGNvZGVhbmRjYXNoLmNvbSIsImlhdCI6MTc1MjE3NTYyNiwiZXhwIjoxNzUyNzgwNDI2fQ.My-Y74hBKjutWPZXqZ9vN5zG6KARC5x_RT4rSGhJ5uA",
+  "token": "eyJhbGciOiJIUzI1NiIs....eyJ1c2VySWQiOiI2ODZiYzIyN2QwOWEzMTNjMzliYTlkNjciLCJlbWFpbCI6ImFkbWluQGNvZGVhbmRjYXNoLmNvbSIsImlhdCI6MTc1MjE3NTYyNiwiZXhwIjoxNzUyNzgwNDI2fQ.My-Y74hBKjutWPZXqZ9vN5zG6KARC5x_RT4rSGhJ5uA",
   "data": {
     "user": {
-      "id": "686bc227d09a313c39ba9d67",
+      "id": "695bb4ff6112d50653280cc5",
       "name": "System Administrator",
-      "email": "admin@codexa.com"
+      "email": "admin@codeandcash.com"
     }
   }
 }
@@ -285,7 +285,7 @@ curl -X POST http://localhost:5001/api/auth/login \
 ### Admin Access Test:
 
 ```bash
-curl -X GET http://localhost:5001/api/admin/check-access \
+curl -X GET http://localhost:5002/api/admin/check-access \
   -H "Authorization: Bearer [TOKEN]"
 ```
 
@@ -297,7 +297,7 @@ curl -X GET http://localhost:5001/api/admin/check-access \
   "message": "Admin access verified",
   "data": {
     "user": {
-      "id": "686bc227d09a313c39ba9d67",
+      "id": "695bb4ff6112d50653280cc5",
       "name": "System Administrator",
       "email": "admin@codeandcash.com",
       "role": "admin"
@@ -410,7 +410,7 @@ if (user && user.role === "admin") {
 ### Test Login (Backend):
 
 ```bash
-curl -X POST http://localhost:5001/api/auth/login \
+curl -X POST http://localhost:5002/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@codeandcash.com", "password": "admin123456"}'
 ```
@@ -418,7 +418,7 @@ curl -X POST http://localhost:5001/api/auth/login \
 ### Test Admin Access (Backend):
 
 ```bash
-curl -X GET http://localhost:5001/api/admin/check-access \
+curl -X GET http://localhost:5002/api/admin/check-access \
   -H "Authorization: Bearer [YOUR_TOKEN_HERE]"
 ```
 

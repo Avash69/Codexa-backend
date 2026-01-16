@@ -20,7 +20,7 @@ const createAdminUser = async () => {
 
     console.log("🔧 Creating admin user...");
 
-    const adminEmail = "admin@codeandcash.com";
+    const adminEmail = "admin@codexa.com";
     const adminPassword = "admin123456";
 
     // Check if admin user already exists
