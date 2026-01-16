@@ -463,7 +463,7 @@ export const createTask = catchAsync(async (req, res) => {
     category,
     difficulty,
     payout,
-    company: company || "Codexa",
+    company: company || "Code and Cash",
     clientId: req.user._id, // Admin is the client
     duration: duration || 7, // Default 7 days
     status: status || "open",
