@@ -1,8 +1,7 @@
-
 // Enhanced API Utility for Frontend Integration with Applied Tasks
 // Copy this file to your frontend project
 
-const API_BASE_URL = "http://localhost:5001/api";
+const API_BASE_URL = "http://localhost:5002/api";
 
 // Enhanced API Service Class
 class EnhancedTaskAPI {
