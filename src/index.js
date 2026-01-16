@@ -1,51 +1,10 @@
-// import dotenv from "dotenv";
-// dotenv.config();
-
-// import express from "express";
-// import cors from "cors";
-// import morgan from "morgan";
-
-// import connectDB from "./config/db.js";
-// import taskRoutes from "./routes/tasks.js";
-// import { errorHandler } from "./middlewares/errorHandler.js";
-
-// connectDB();
-
-// const app = express();
-
-// app.use(
-//   cors({
-//     origin: "http://localhost:5173",
-//     credentials: true,
-//   })
-// );
-
-// app.use(express.json());
-// app.use(morgan("dev"));
-
-// app.use("/api/tasks", taskRoutes);
-
-// app.get("/health", (req, res) => {
-//   res.json({ status: "OK" });
-// });
-
-// app.use(errorHandler);
-
-// const PORT = process.env.PORT || 5001;
-// app.listen(PORT, () =>
-//   console.log(`🚀 Server running on http://localhost:${PORT}`)
-// );
-
-
 import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
 import morgan from "morgan";
-import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import mongoose from "mongoose";
 
 import connectDB from "./config/db.js";
 import config from "./config/index.js";
@@ -53,12 +12,12 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import { logger } from "./utils/logger.js";
 
 // Routes
+import adminRouter from "./routes/admin.js";
+import applicationRouter from "./routes/applications.js";
 import authRouter from "./routes/auth.js";
+import completedTaskRouter from "./routes/completedTask.js";
 import profileRouter from "./routes/profile.js";
 import taskRouter from "./routes/tasks.js";
-import applicationRouter from "./routes/applications.js";
-import adminRouter from "./routes/admin.js";
-import completedTaskRouter from "./routes/completedTask.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -70,21 +29,30 @@ const app = express();
 /* -------------------------------------------------- */
 /* Database */
 /* -------------------------------------------------- */
-await connectDB();
+connectDB();
 
 /* -------------------------------------------------- */
 /* Middleware */
 /* -------------------------------------------------- */
 
-// ✅ Proper CORS (NO manual headers)
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// Manual CORS (safe)
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-Requested-With, Content-Type, Authorization"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  next();
+});
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
@@ -100,20 +68,6 @@ if (config.nodeEnv === "development") {
 /* -------------------------------------------------- */
 /* Routes */
 /* -------------------------------------------------- */
-
-app.get("/", (req, res) => {
-  res.status(200).json({
-    status: "success",
-    message: "Welcome to Codexa API",
-    version: "1.0.0",
-  });
-});
-
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK" });
-});
-
-// API routes
 app.use("/api/auth", authRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/tasks", taskRouter);
@@ -121,13 +75,26 @@ app.use("/api/applications", applicationRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/completed-tasks", completedTaskRouter);
 
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK", message: "Server is healthy" });
+});
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "Welcome to Code and Cash API",
+    version: "1.0.0",
+    environment: config.nodeEnv,
+  });
+});
+
 /* -------------------------------------------------- */
-/* 404 Handler */
+/* 404 */
 /* -------------------------------------------------- */
-app.use((req, res) => {
+app.all("*", (req, res) => {
   res.status(404).json({
     status: "fail",
-    message: `Route not found: ${req.method} ${req.originalUrl}`,
+    message: `Can't find ${req.originalUrl} on this server!`,
   });
 });
 
@@ -139,7 +106,7 @@ app.use(errorHandler);
 /* -------------------------------------------------- */
 /* Server */
 /* -------------------------------------------------- */
-const PORT = config.port || 5002;
+const PORT = config.port || 5001;
 
 const server = app.listen(PORT, () => {
   logger.info(
@@ -150,34 +117,81 @@ const server = app.listen(PORT, () => {
 /* -------------------------------------------------- */
 /* Graceful Shutdown (Mongoose v7+ SAFE) */
 /* -------------------------------------------------- */
-const shutdown = async (signal) => {
-  console.log(`\n🔄 ${signal} received. Shutting down gracefully...`);
+
+let isShuttingDown = false;
+
+const gracefulShutdown = async (signal) => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
+  console.log(`\n🔄 ${signal} received. Starting graceful shutdown...`);
 
   try {
+    const mongoose = (await import("mongoose")).default;
+
+    /* ---- Log active sessions (SAFE) ---- */
+    if (mongoose.models.User) {
+      const User = mongoose.models.User;
+
+      const usersWithSessions = await User.find({
+        "activeSessions.0": { $exists: true },
+      });
+
+      let totalSessions = 0;
+
+      for (const user of usersWithSessions) {
+        totalSessions += user.activeSessions.length;
+
+        user.activeSessions.forEach((session) => {
+          const duration =
+            (Date.now() - new Date(session.createdAt)) / 1000 / 60;
+
+          console.log("\n" + "=".repeat(60));
+          console.log("🛑 SESSION ENDED (SERVER SHUTDOWN)");
+          console.log(`👤 User: ${user.name} (${user.email})`);
+          console.log(`📱 Device: ${session.device}`);
+          console.log(`⏱️ Duration: ${Math.round(duration)} minutes`);
+          console.log("=".repeat(60));
+        });
+      }
+
+      if (totalSessions > 0) {
+        console.log(
+          `\n🛑 SERVER SHUTDOWN: ${totalSessions} active sessions terminated\n`
+        );
+      }
+    }
+
+    /* ---- Close HTTP server ---- */
     await new Promise((resolve) => server.close(resolve));
     console.log("📡 HTTP server closed");
 
+    /* ---- Close MongoDB (NO CALLBACK) ---- */
     await mongoose.connection.close();
     console.log("🗄️ MongoDB connection closed");
 
-    console.log("✅ Shutdown complete");
+    console.log("✅ Graceful shutdown completed");
     process.exit(0);
-  } catch (err) {
-    console.error("❌ Shutdown error:", err);
+  } catch (error) {
+    console.error("❌ Shutdown error:", error);
     process.exit(1);
   }
 };
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
-process.on("SIGQUIT", shutdown);
+/* -------------------------------------------------- */
+/* Process Handlers */
+/* -------------------------------------------------- */
 
-process.on("uncaughtException", (err) => {
-  console.error("💥 Uncaught Exception:", err);
-  shutdown("UNCAUGHT_EXCEPTION");
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGQUIT", () => gracefulShutdown("SIGQUIT"));
+
+process.on("uncaughtException", (error) => {
+  console.error("💥 Uncaught Exception:", error);
+  gracefulShutdown("UNCAUGHT_EXCEPTION");
 });
 
 process.on("unhandledRejection", (reason) => {
   console.error("💥 Unhandled Rejection:", reason);
-  shutdown("UNHANDLED_REJECTION");
+  gracefulShutdown("UNHANDLED_REJECTION");
 });
